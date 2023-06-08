@@ -1,0 +1,141 @@
+---
+Author: "Aniket Chakraborty"
+at Updated:"07.06.2023 or 7th June 2023"
+title: "R Notebook on Simple and Multiple Linear Regression Model"
+output: html_notebook
+---
+# Installing and loading required packages
+```{r}
+install.packages("tidyverse")
+install.packages("car")
+library(car)
+library(tidyverse)
+library(dplyr)
+```
+
+# Reading the file Food_Texture_Data.csv using read.csv()function
+```{r}
+food_df_01 <- read.csv("Food_Texture_Data.csv")
+```
+
+# Previewing the data frame using View()function
+```{r}
+View(food_df_01)
+```
+
+# Checking first few rows of the data set
+```{r}
+head(food_df_01,5)
+```
+# Adding a new column called Price and storing it in a data frame
+```{r}
+food_df_02 <- food_df_01 %>% mutate(Price=80*(Density/(Crispy+Oil+Fracture+Hardness)))
+head(food_df_02,5)
+```
+# Renaming some variables for ease of using them and storing them in a new data frame
+```{r}
+food_df_03 <- food_df_02 %>% rename(Oil_Percentage=Oil)
+head(food_df_03)
+```
+# Creating the final data frame to work on it further by deselcting the 'X' variable
+```{r}
+food_data <- food_df_03 %>% select(-X)
+head(food_data)
+```
+# Previewing the food_data data frame
+```{r}
+View(food_data)
+```
+
+#                            Building a simple linear regression model 
+
+# Price as response and Oil_Percentage as predictor variable. Here we use the lm() function to build the model
+```{r}
+model1 <- lm(data=food_data, Price ~ Oil_Percentage)
+summary(model1)
+```
+# Price as response and Density as predictor variable. Here we use the lm() function to build the model
+```{r}
+model2 <- lm(data=food_data,Price ~ Density)
+summary(model2)
+```
+
+# Price as response and Crispy as predictor variable. Here we use the lm() function to build the model
+```{r}
+model3 <- lm(data=food_data,Price ~ Crispy)
+summary(model3)
+```
+
+# Price as response and Hardness as predictor variable. Here we use the lm() function to build the model
+```{r}
+model4 <- lm(data=food_data, Price ~ Hardness)
+summary(model4)
+```
+
+# Price as response and Fracture as predictor variable. Here we use the lm() function to build the model
+```{r}
+model5 <- lm(data=food_data, Price ~ Fracture)
+summary(model5)
+```
+#                      Building a Multiple Linear regression Model
+
+# price as response variable and the other variables as predictor variables
+```{r}
+model6 <- lm(data=food_data, Price ~ Oil_Percentage+Density+Hardness+Crispy+Fracture)
+summary(model6)
+```
+# All the interpreations of models that are build are given in detail in a separate Markdown File.It contains basic notations, basic terminologies and other things. The concept of being confounding and collinear is also covered in that discussion.
+
+# Checking the coefficient correlation matrix to know which factor effects the most in predicting the Price. We will discuss this matrix later in detail in the markdown document.
+```{r}
+round(cor(food_data[c("Oil_Percentage","Density","Hardness","Fracture","Crispy")]),2)
+```
+# Now here VIF (Variance Inflation Factor) is calculated for the predictor variables. Here we observe that the VIF value is the highest for the variable Crispy (>5). So we eliminate it and build the model with the other features.
+```{r}
+car::vif(model6)
+```
+# Building model considering all but expect Crispy as predictor variable
+```{r}
+model7 <- lm(data=food_data, Price ~ Oil_Percentage+Density+Hardness+Fracture)
+summary(model7)
+```
+# Here to check collinearity we crate a new column called Density_in_hundred and store it in a new data frame
+```{r}
+food_data_1 <- food_data %>% mutate(Density_in_hundred = Density/100)
+head(food_data_1,5)
+```
+# Now we build a Multiple Linear Regression Model with Price as response and Density and Density_in_hundred and Hardness as predictor
+```{r}
+model8 <- lm(data=food_data_1, Price ~ Density+Hardness+Density_in_hundred)
+summary(model8)
+```
+# Getting the mean of Price
+```{r}
+mean(food_data$Price)
+```
+
+# Now to know what happens in the result if there are categorical predictors, we create a column called Costly(Yes and No) Depending on the price and store it in a new data frame
+```{r}
+food_data_final <- food_data_1 %>% mutate(Costly=ifelse(Price>mean(Price),"Yes","No"))
+head(food_data_final)
+```
+# Previewing the latest data frame
+```{r}
+View(food_data_final)
+```
+
+# Now make a model with Price as response variable and Density, Hardness and Costly as predictor variables
+```{r}
+model9 <- lm(data=food_data_final, Price ~ Density+Hardness+Costly)
+summary(model9)
+```
+
+
+
+
+
+
+
+
+
+
